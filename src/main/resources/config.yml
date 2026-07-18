@@ -1,0 +1,71 @@
+# DevStorageDrawer global settings. Strings in messages.yml use MiniMessage.
+config-version: 1
+
+interaction:
+  # A second matching right-click within this window deposits matching inventory stacks.
+  bulk-deposit-window-ticks: 10
+  require-facing-face: true
+
+visuals:
+  enabled: true
+  repair-on-chunk-load: true
+  update-delay-ticks: 1
+  # Kept slightly in front of the face to avoid client-side block occlusion/z-fighting.
+  front-offset: 0.54
+  item:
+    enabled: true
+    # The item is face-aligned with a matrix instead of entity yaw/pitch. Depth compression
+    # keeps block and custom 3D models inside the drawer face.
+    scale: 0.36
+    depth-scale: 0.08
+    offset-y: 0.02
+    model-context: NONE
+  text:
+    enabled: true
+    # Text is scaled and wrapped so its rendered width stays on the barrel face.
+    scale: 0.40
+    line-width: 92
+    name-offset-y: 0.30
+    amount-offset-y: -0.42
+
+# Bedrock clients cannot render Java ItemDisplay entities. The fallback is required.
+bedrock:
+  enabled: true
+  required: true
+  armor-stand:
+    show-item: true
+    show-name: true
+    marker: true
+    invisible: true
+
+automation:
+  enabled: true
+  # Maximum batch considered by the eventless block-hopper input guard. Zero auto-detects
+  # world-settings.*.hopper-amount from spigot.yml. Set this explicitly when the server uses a
+  # custom --spigot-settings path or an eventless custom hopper implementation.
+  hopper-transfer-amount: 0
+  # Optional per-world overrides, keyed by the exact Bukkit world name.
+  hopper-transfer-amount-overrides: {}
+  # Emits every hopper decision and reconciliation step. Enable temporarily while diagnosing automation.
+  debug-logging: false
+  # Detects hopper implementations that bypass InventoryMoveItemEvent without scanning unloaded chunks.
+  fallback-poll-interval-ticks: 10
+  # Slot zero is the input buffer except when a completely full drawer needs all 27
+  # real slots to make vanilla emit comparator level 15.
+  output-proxy-slots: 26
+  # The plugin additionally waits one tick after a move event so it reads the completed vanilla transfer.
+  rebalance-delay-ticks: 1
+  journal:
+    recover-on-load: true
+
+redstone:
+  # Requires automation.enabled, exactly 26 output proxy slots, and tiers >= 27 stacks.
+  logical-comparator-output: true
+  comparator-recalculate-delay-ticks: 1
+  protect-from-explosions: true
+  prevent-piston-movement: true
+
+parcels:
+  enabled: true
+  drop-on-break: true
+  # Parcels are always owner-bound, container-blocked, and use vanilla item despawn.
