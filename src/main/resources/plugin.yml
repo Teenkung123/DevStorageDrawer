@@ -1,0 +1,40 @@
+name: DevStorageDrawer
+version: '${version}'
+main: com.teenkung.devstoragedrawer.DevStorageDrawer
+api-version: '26.1.2'
+load: POSTWORLD
+folia-supported: true
+authors: [Teenkung123]
+description: Configurable single-item storage drawers built from vanilla barrels.
+softdepend: [Geyser-Spigot, floodgate]
+
+commands:
+  drawers:
+    description: Manage DevStorageDrawer drawer tiers and repairs.
+    usage: "/drawers <give|reload|repair|migrate>"
+    aliases: [drawer]
+
+permissions:
+  devstoragedrawer.use:
+    description: Use placed storage drawers.
+    default: true
+  devstoragedrawer.admin:
+    description: Grants every DevStorageDrawer administration permission.
+    default: op
+    children:
+      devstoragedrawer.admin.give: true
+      devstoragedrawer.admin.reload: true
+      devstoragedrawer.admin.repair: true
+      devstoragedrawer.admin.migrate: true
+  devstoragedrawer.admin.give:
+    description: Give configured drawer tier items.
+    default: op
+  devstoragedrawer.admin.reload:
+    description: Reload DevStorageDrawer configuration.
+    default: op
+  devstoragedrawer.admin.repair:
+    description: Repair drawer display entities and persisted state.
+    default: op
+  devstoragedrawer.admin.migrate:
+    description: Apply an explicit configured-tier capacity migration.
+    default: op

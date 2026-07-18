@@ -1,0 +1,40 @@
+# User-facing text. Values use MiniMessage formatting.
+prefix: "<dark_gray>[<gradient:#f6c453:#f28c28><bold>DRAWERS</bold></gradient><dark_gray>] <reset>"
+
+general:
+  no-permission: "<red>✘ <gray>You do not have permission to do that."
+  players-only: "<red>✘ <gray>Only players can use this command."
+  configuration-error: "<red>✘ <gray>The drawer could not complete that action. Contact an administrator."
+
+drawer:
+  invalid: "<red>✘ <gray>Drawer unavailable: <white><reason><gray>. Contact an administrator if it persists."
+  empty: "<yellow>◆ <gray>This drawer is empty."
+  full: "<red>✘ <gray>This drawer is full."
+  wrong-item: "<red>✘ <gray>This drawer stores a different item."
+  no-matching-items: "<yellow>◆ <gray>You have no matching items to deposit."
+  deposited: "<green>✔ <gray>Deposited <white><amount> <gray>item(s)."
+  withdrawn: "<green>✔ <gray>Withdrew <white><amount> <gray>item(s)."
+  withdrawal-pending: "<yellow>◆ <gray>Withdrawal saved; free inventory space to receive it."
+  inventory-full: "<red>✘ <gray>Your inventory has no room for that item."
+  interaction-face-only: "<yellow>◆ <gray>Use the front face of this drawer."
+  no-gui: "<yellow>◆ <gray>Drawers do not have an inventory screen."
+
+parcel:
+  owner-only: "<red>✘ <gray>This contents parcel belongs to <white><owner><gray>."
+  claimed: "<green>✔ <gray>Claimed <white><amount> <gray>item(s) from the contents parcel."
+  inventory-full: "<red>✘ <gray>Your inventory has no room for the parcel contents."
+
+command:
+  usage: "<yellow>◆ <gray>Usage: <white>/drawers <give|reload|repair|migrate>"
+  give-usage: "<yellow>◆ <gray>Usage: <white>/drawers give <player> <tier> [amount]"
+  unknown-tier: "<red>✘ <gray>Unknown drawer tier: <white><tier>"
+  invalid-amount: "<red>✘ <gray>Amount must be a positive whole number."
+  player-not-found: "<red>✘ <gray>Player not found: <white><player>"
+  given: "<green>✔ <gray>Gave <white><amount> <gray><tier> drawer(s) to <white><player><gray>."
+  reloaded: "<green>✔ <gray>Configuration reloaded."
+  repair-queued: "<green>✔ <gray>Queued repair for all loaded drawer chunks."
+  player-only: "<red>✘ <gray>This subcommand can only be used by a player."
+  migrate-no-target: "<red>✘ <gray>Look at a drawer within six blocks and try again."
+  migrate-too-small: "<red>✘ <gray>Migration refused: <white><stored> <gray>items exceed the new <white><capacity> <gray>capacity."
+  migrated: "<green>✔ <gray>Drawer capacity migrated from <white><old> <gray>to <white><capacity><gray>."
+  migration-usage: "<yellow>◆ <gray>Use the explicit migration command configured by your administrator."

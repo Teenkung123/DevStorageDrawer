@@ -1,0 +1,32 @@
+# Add or remove tier entries as needed. Each tier always places a vanilla barrel.
+# Strings use MiniMessage. Omit custom-model-data (or leave it null) for vanilla visuals.
+config-version: 1
+
+tiers:
+  tier_1:
+    item:
+      material: BARREL
+      name: "<gold>Drawer Tier 1"
+      lore:
+        - "<gray>Stores up to <white>32 stacks<gray> of one item."
+      custom-model-data: null
+    capacity-stacks: 32
+    placement-permission: ""
+  tier_2:
+    item:
+      material: BARREL
+      name: "<gold>Drawer Tier 2"
+      lore:
+        - "<gray>Stores up to <white>64 stacks<gray> of one item."
+      custom-model-data: null
+    capacity-stacks: 64
+    placement-permission: ""
+  tier_3:
+    item:
+      material: BARREL
+      name: "<gold>Drawer Tier 3"
+      lore:
+        - "<gray>Stores up to <white>128 stacks<gray> of one item."
+      custom-model-data: null
+    capacity-stacks: 128
+    placement-permission: ""
