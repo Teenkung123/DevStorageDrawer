@@ -2,6 +2,11 @@
 
 All notable changes to DevStorageDrawer are documented here.
 
+## 1.0.1
+
+- Added optional WorldGuard protection for player drawer withdrawals.
+- Added the MIT License.
+
 ## 1.0
 
 Initial public release.
