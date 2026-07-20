@@ -23,6 +23,12 @@ Builds use the included Gradle wrapper and target the Paper API as a compile-onl
 
 Multi-item storage, crafting recipes, locking, voiding, controllers, remotes, and personal security are outside the current v1 scope.
 
+## Release
+
+The current release line is **1.0**. Release jars and their SHA-256 checksums
+are distributed through the [GitHub Releases page](https://github.com/Teenkung123/DevStorageDrawer/releases).
+Verify the checksum before copying a jar to a production server.
+
 ## Build and test
 
 ```powershell
