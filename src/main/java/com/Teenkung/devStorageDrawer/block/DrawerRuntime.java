@@ -1,6 +1,7 @@
 package com.teenkung.devstoragedrawer.block;
 
 import com.teenkung.devstoragedrawer.api.DevStorageDrawerApi;
+import com.teenkung.devstoragedrawer.interaction.DrawerWithdrawalProtection;
 import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
 import com.teenkung.devstoragedrawer.config.DrawerMessages;
 import com.teenkung.devstoragedrawer.config.DrawerSettings;
@@ -68,7 +69,8 @@ public final class DrawerRuntime {
                 renderer,
                 parcelBreakHandler,
                 receiptStore,
-                DrawerDisplayTargetResolver.none()
+                DrawerDisplayTargetResolver.none(),
+                DrawerWithdrawalProtection.ALLOW_ALL
         );
     }
 
@@ -84,6 +86,26 @@ public final class DrawerRuntime {
             final DrawerParcelBreakHandler parcelBreakHandler,
             final WithdrawalReceiptStore receiptStore,
             final DrawerDisplayTargetResolver displayTargetResolver
+    ) {
+        this(
+                plugin, execution, repository, storage, settings, messages, tierLookup, renderer, parcelBreakHandler, receiptStore,
+                displayTargetResolver, DrawerWithdrawalProtection.ALLOW_ALL
+        );
+    }
+
+    public DrawerRuntime(
+            final JavaPlugin plugin,
+            final FoliaExecution execution,
+            final DrawerStateRepository repository,
+            final DrawerStorageStrategy storage,
+            final DrawerSettings settings,
+            final DrawerMessages messages,
+            final DrawerTierLookup tierLookup,
+            final DrawerRenderer renderer,
+            final DrawerParcelBreakHandler parcelBreakHandler,
+            final WithdrawalReceiptStore receiptStore,
+            final DrawerDisplayTargetResolver displayTargetResolver,
+            final DrawerWithdrawalProtection withdrawalProtection
     ) {
         Objects.requireNonNull(plugin, "plugin");
         this.context = new DrawerRuntimeContext(
@@ -111,7 +133,8 @@ public final class DrawerRuntime {
                 this.context,
                 this.hopperBridge,
                 this.withdrawalCoordinator,
-                displayTargetResolver
+                displayTargetResolver,
+                withdrawalProtection
         );
         this.blockListener = new DrawerBlockListener(this.context, this.hopperBridge);
     }

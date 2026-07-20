@@ -14,6 +14,8 @@ import com.teenkung.devstoragedrawer.config.DrawerSettings;
 import com.teenkung.devstoragedrawer.display.DrawerVisualRenderer;
 import com.teenkung.devstoragedrawer.domain.DrawerState;
 import com.teenkung.devstoragedrawer.domain.SingleItemDrawerStorage;
+import com.teenkung.devstoragedrawer.interaction.DrawerWithdrawalProtection;
+import com.teenkung.devstoragedrawer.interaction.WorldGuardDrawerWithdrawalProtection;
 import com.teenkung.devstoragedrawer.parcel.DrawerParcelListener;
 import com.teenkung.devstoragedrawer.parcel.DrawerParcelService;
 import com.teenkung.devstoragedrawer.persistence.DrawerStateRepository;
@@ -99,7 +101,10 @@ public final class DevStorageDrawer extends JavaPlugin {
                 },
                 (owner, location, template, total) -> parcels.dropForBreak(owner, location, template, total),
                 withdrawalReceipts,
-                entity -> resolveDisplayTarget(entity, repository)
+                entity -> resolveDisplayTarget(entity, repository),
+                pluginManager.isPluginEnabled("WorldGuard")
+                        ? new WorldGuardDrawerWithdrawalProtection()
+                        : DrawerWithdrawalProtection.ALLOW_ALL
         );
         api = runtime.api();
         getServer().getServicesManager().register(DevStorageDrawerApi.class, api, this, ServicePriority.Normal);

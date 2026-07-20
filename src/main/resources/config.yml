@@ -30,8 +30,8 @@ visuals:
 
 # Bedrock clients cannot render Java ItemDisplay entities. The fallback is required.
 bedrock:
-  enabled: true
-  required: true
+  enabled: false
+  required: false
   armor-stand:
     show-item: true
     show-name: true
