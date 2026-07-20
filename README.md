@@ -72,4 +72,4 @@ Existing drawers retain their capacity snapshot. Use the explicit migration comm
 
 ## License
 
-No license has been selected for this project yet. Until one is added, all rights are reserved.
+This project is licensed under the [MIT License](LICENSE).

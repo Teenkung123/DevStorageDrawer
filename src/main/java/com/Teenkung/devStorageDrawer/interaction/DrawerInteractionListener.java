@@ -48,6 +48,7 @@ public final class DrawerInteractionListener implements Listener {
     private final DrawerHopperBridge hoppers;
     private final DrawerWithdrawalCoordinator withdrawals;
     private final DrawerRuntime.DrawerDisplayTargetResolver displayTargetResolver;
+    private final DrawerWithdrawalProtection withdrawalProtection;
     private final Map<UUID, BulkDepositArm> bulkDepositArms = new ConcurrentHashMap<>();
     private final Map<UUID, PendingBlockWithdrawal> pendingBlockWithdrawals = new ConcurrentHashMap<>();
 
@@ -55,12 +56,14 @@ public final class DrawerInteractionListener implements Listener {
             final DrawerRuntimeContext context,
             final DrawerHopperBridge hoppers,
             final DrawerWithdrawalCoordinator withdrawals,
-            final DrawerRuntime.DrawerDisplayTargetResolver displayTargetResolver
+            final DrawerRuntime.DrawerDisplayTargetResolver displayTargetResolver,
+            final DrawerWithdrawalProtection withdrawalProtection
     ) {
         this.context = Objects.requireNonNull(context, "context");
         this.hoppers = Objects.requireNonNull(hoppers, "hoppers");
         this.withdrawals = Objects.requireNonNull(withdrawals, "withdrawals");
         this.displayTargetResolver = Objects.requireNonNull(displayTargetResolver, "displayTargetResolver");
+        this.withdrawalProtection = Objects.requireNonNull(withdrawalProtection, "withdrawalProtection");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -334,6 +337,10 @@ public final class DrawerInteractionListener implements Listener {
     }
 
     private void withdraw(final Player player, final Barrel barrel, final boolean bulk) {
+        if (!this.withdrawalProtection.canWithdraw(player, barrel)) {
+            message(player, "general.no-permission");
+            return;
+        }
         final ReadyDrawer ready = readyDrawer(barrel);
         if (ready == null) {
             if (!withdrawals.isWithdrawalInProgress(barrel)) {

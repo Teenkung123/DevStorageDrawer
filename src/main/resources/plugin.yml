@@ -6,7 +6,7 @@ load: POSTWORLD
 folia-supported: true
 authors: [Teenkung123]
 description: Configurable single-item storage drawers built from vanilla barrels.
-softdepend: [Geyser-Spigot, floodgate]
+softdepend: [Geyser-Spigot, floodgate, WorldGuard]
 
 commands:
   drawers:
