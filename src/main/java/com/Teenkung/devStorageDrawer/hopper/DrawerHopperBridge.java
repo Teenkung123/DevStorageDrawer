@@ -76,8 +76,8 @@ public final class DrawerHopperBridge implements Listener {
         if (drawer == null || !this.context.repository().isDrawer(drawer)) {
             return;
         }
-        if (!Bukkit.isOwnedByCurrentRegion(drawer.getLocation())
-                || !Bukkit.isOwnedByCurrentRegion(event.getBlock().getLocation())) {
+        if (!context.execution().isOwnedByCurrentRegion(drawer.getLocation())
+                || !context.execution().isOwnedByCurrentRegion(event.getBlock().getLocation())) {
             event.setInventory(null);
             debug("rejected hopper destination search outside the current region for " + drawer.getLocation());
             return;
@@ -111,8 +111,8 @@ public final class DrawerHopperBridge implements Listener {
         debug("move " + event.getItem().getType() + " x" + event.getItem().getAmount()
                 + " source=" + inventoryDescription(event.getSource(), source, sourceDrawer)
                 + " destination=" + inventoryDescription(event.getDestination(), destination, destinationDrawer));
-        if ((source != null && !Bukkit.isOwnedByCurrentRegion(source.getLocation()))
-                || (destination != null && !Bukkit.isOwnedByCurrentRegion(destination.getLocation()))) {
+        if ((source != null && !context.execution().isOwnedByCurrentRegion(source.getLocation()))
+                || (destination != null && !context.execution().isOwnedByCurrentRegion(destination.getLocation()))) {
             // Never inspect or mutate a foreign Folia region from the hopper event. Adjacent
             // transfers are normally region-co-owned; unusual cross-region attempts fail closed.
             event.setCancelled(true);

@@ -256,7 +256,7 @@ public final class DrawerSellWandBridge {
     }
 
     private ReadyDrawer readyDrawer(final Barrel barrel) {
-        if (barrel == null || !Bukkit.isOwnedByCurrentRegion(barrel.getLocation())) {
+        if (barrel == null || !context.execution().isOwnedByCurrentRegion(barrel.getLocation())) {
             return null;
         }
 

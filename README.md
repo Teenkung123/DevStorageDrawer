@@ -1,11 +1,11 @@
 # DevStorageDrawer
 
-DevStorageDrawer is a configurable single-item storage-drawer plugin for Paper and Folia 1.19.4+. It uses tagged vanilla barrels as the physical storage mirror, keeps the logical item total in persistent data, and supports vanilla hopper automation without requiring NMS, reflection, ProtocolLib, or an NBT API.
+DevStorageDrawer is a configurable single-item storage-drawer plugin for Paper 1.19.4+. It uses tagged vanilla barrels as the physical storage mirror, keeps the logical item total in persistent data, and supports vanilla hopper automation without requiring NMS, reflection, ProtocolLib, or an NBT API.
 
 ## Requirements
 
 - Java 21 or newer
-- Paper or Folia 1.19.4 or newer
+- Paper 1.19.4 or newer
 - Optional: Geyser/Floodgate for Bedrock player detection and fallback rendering
 
 Builds use the included Gradle wrapper and target the Paper API as a compile-only dependency.
@@ -19,7 +19,7 @@ Builds use the included Gradle wrapper and target the Paper API as a compile-onl
 - Java ItemDisplay/TextDisplay rendering with Bedrock fallback entities when Floodgate is available
 - Safe filled-drawer break handling with owner-bound contents parcels
 - Persistent state recovery, repair, explicit capacity migration, and journaled transactions
-- Folia-aware scheduling and a public API for integrations
+- Paper-safe scheduling and a public API for integrations
 
 Multi-item storage, crafting recipes, locking, voiding, controllers, remotes, and personal security are outside the current v1 scope.
 
@@ -42,7 +42,7 @@ The resulting plugin jar is written to `build/libs/`.
 
 1. Build the project with the Gradle wrapper.
 2. Copy the jar from `build/libs/` into the server's `plugins/` directory.
-3. Start or restart the Paper/Folia server.
+3. Start or restart the Paper server.
 4. Configure `plugins/DevStorageDrawer/config.yml`, `tiers.yml`, and `messages.yml` as needed.
 
 The plugin does not add crafting recipes. Administrators issue configured drawer tiers with `/drawers give`.

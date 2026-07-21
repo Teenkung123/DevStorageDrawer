@@ -1,6 +1,6 @@
 package com.teenkung.devstoragedrawer.scheduler;
 
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.function.Consumer;
 import org.bukkit.Bukkit;
@@ -8,14 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
-/**
- * Small boundary around Paper's region-aware schedulers.
- *
- * <p>World and block work must use {@link #executeAt(Location, Runnable)} or
- * {@link #runLaterAt(Location, long, Consumer)}. Entity mutations must use
- * {@link #runOnEntity(Entity, Consumer, Runnable)}. This class intentionally
- * does not expose Bukkit's legacy scheduler.</p>
- */
+/** Region-aware scheduler boundary that runs on both Paper and Folia. */
 public final class FoliaExecution {
     private final Plugin plugin;
 
@@ -24,43 +17,79 @@ public final class FoliaExecution {
     }
 
     public void executeAt(final Location location, final Runnable action) {
-        Bukkit.getRegionScheduler().execute(plugin, checkedLocation(location), Objects.requireNonNull(action, "action"));
+        final Location checked = checkedLocation(location);
+        if (!invokeRegion("execute", new Class<?>[]{Plugin.class, Location.class, Runnable.class},
+                plugin, checked, Objects.requireNonNull(action, "action"))) {
+            Bukkit.getScheduler().runTask(plugin, action);
+        }
     }
 
-    public void runLaterAt(
-            final Location location,
-            final long delayTicks,
-            final Consumer<ScheduledTask> action
-    ) {
+    public void runLaterAt(final Location location, final long delayTicks, final Consumer<Object> action) {
         if (delayTicks < 1) {
             throw new IllegalArgumentException("delayTicks must be positive");
         }
-        Bukkit.getRegionScheduler().runDelayed(
-                plugin,
-                checkedLocation(location),
-                Objects.requireNonNull(action, "action"),
-                delayTicks
-        );
+        final Location checked = checkedLocation(location);
+        if (!invokeRegion("runDelayed", new Class<?>[]{Plugin.class, Location.class, Consumer.class, long.class},
+                plugin, checked, Objects.requireNonNull(action, "action"), delayTicks)) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> action.accept(null), delayTicks);
+        }
     }
 
-    public void runGlobal(final Consumer<ScheduledTask> action) {
-        Bukkit.getGlobalRegionScheduler().run(plugin, Objects.requireNonNull(action, "action"));
+    public void runGlobal(final Consumer<Object> action) {
+        if (!invokeScheduler("getGlobalRegionScheduler", "run", new Class<?>[]{Plugin.class, Consumer.class},
+                plugin, Objects.requireNonNull(action, "action"))) {
+            Bukkit.getScheduler().runTask(plugin, () -> action.accept(null));
+        }
     }
 
-    public void runAsync(final Consumer<ScheduledTask> action) {
-        Bukkit.getAsyncScheduler().runNow(plugin, Objects.requireNonNull(action, "action"));
+    public void runAsync(final Consumer<Object> action) {
+        if (!invokeScheduler("getAsyncScheduler", "runNow", new Class<?>[]{Plugin.class, Consumer.class},
+                plugin, Objects.requireNonNull(action, "action"))) {
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> action.accept(null));
+        }
     }
 
-    public void runOnEntity(
-            final Entity entity,
-            final Consumer<ScheduledTask> action,
-            final Runnable retired
-    ) {
-        Objects.requireNonNull(entity, "entity").getScheduler().run(
-                plugin,
-                Objects.requireNonNull(action, "action"),
-                Objects.requireNonNull(retired, "retired")
-        );
+    public void runOnEntity(final Entity entity, final Consumer<Object> action, final Runnable retired) {
+        final Entity checked = Objects.requireNonNull(entity, "entity");
+        final Consumer<Object> checkedAction = Objects.requireNonNull(action, "action");
+        final Runnable checkedRetired = Objects.requireNonNull(retired, "retired");
+        try {
+            final Object scheduler = checked.getClass().getMethod("getScheduler").invoke(checked);
+            scheduler.getClass().getMethod("run", Plugin.class, Consumer.class, Runnable.class)
+                    .invoke(scheduler, plugin, checkedAction, checkedRetired);
+        } catch (ReflectiveOperationException ignored) {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (checked.isValid()) {
+                    checkedAction.accept(null);
+                } else {
+                    checkedRetired.run();
+                }
+            });
+        }
+    }
+
+    public boolean isOwnedByCurrentRegion(final Location location) {
+        try {
+            return (boolean) Bukkit.class.getMethod("isOwnedByCurrentRegion", Location.class)
+                    .invoke(null, checkedLocation(location));
+        } catch (ReflectiveOperationException ignored) {
+            return true;
+        }
+    }
+
+    private static boolean invokeRegion(final String method, final Class<?>[] types, final Object... args) {
+        return invokeScheduler("getRegionScheduler", method, types, args);
+    }
+
+    private static boolean invokeScheduler(final String accessor, final String method,
+                                           final Class<?>[] types, final Object... args) {
+        try {
+            final Object scheduler = Bukkit.class.getMethod(accessor).invoke(null);
+            scheduler.getClass().getMethod(method, types).invoke(scheduler, args);
+            return true;
+        } catch (ReflectiveOperationException ignored) {
+            return false;
+        }
     }
 
     private static Location checkedLocation(final Location location) {

@@ -14,12 +14,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly("dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
     compileOnly("org.geysermc.floodgate:api:2.2.5-SNAPSHOT")
-    compileOnly("org.geysermc.geyser:api:2.10.0-SNAPSHOT")
-    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.17")
+    compileOnly("org.geysermc.geyser:api:2.2.0-SNAPSHOT")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.9")
 
-    testImplementation("dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -31,7 +31,7 @@ java {
 
 tasks {
     withType<JavaCompile>().configureEach {
-        options.release = 21
+        options.compilerArgs.addAll(listOf("--release", "17"))
         options.encoding = "UTF-8"
     }
 

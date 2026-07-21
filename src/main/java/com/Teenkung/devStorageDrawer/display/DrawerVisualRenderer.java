@@ -209,7 +209,7 @@ public final class DrawerVisualRenderer implements Listener {
                 continue;
             }
             final Location ownerLocation = drawerLocation(entity).orElse(null);
-            if (ownerLocation == null || !Bukkit.isOwnedByCurrentRegion(ownerLocation)) {
+            if (ownerLocation == null || !execution.isOwnedByCurrentRegion(ownerLocation)) {
                 if (ownerLocation == null) {
                     remove(entity);
                 }
@@ -326,7 +326,7 @@ public final class DrawerVisualRenderer implements Listener {
         tag(display, drawer, "java_name");
         display.setVisibleByDefault(true);
         display.setBillboard(Display.Billboard.FIXED);
-        display.setAlignment(TextDisplay.TextAligment.CENTER);
+        display.setAlignment(TextDisplay.TextAlignment.CENTER);
         display.text(displayName(template));
         applyTextPresentation(display, layout, settings.visuals().nameOffsetY());
     }
@@ -341,7 +341,7 @@ public final class DrawerVisualRenderer implements Listener {
         tag(display, drawer, "java_amount");
         display.setVisibleByDefault(true);
         display.setBillboard(Display.Billboard.FIXED);
-        display.setAlignment(TextDisplay.TextAligment.CENTER);
+        display.setAlignment(TextDisplay.TextAlignment.CENTER);
         display.text(amountText(total, capacity));
         applyTextPresentation(display, layout, settings.visuals().amountOffsetY());
     }
