@@ -3,6 +3,7 @@ version: '${version}'
 main: com.teenkung.devstoragedrawer.DevStorageDrawer
 api-version: '1.19'
 load: POSTWORLD
+folia-supported: true
 authors: [Teenkung123]
 description: Configurable single-item storage drawers built from vanilla barrels.
 softdepend: [Geyser-Spigot, floodgate, WorldGuard]

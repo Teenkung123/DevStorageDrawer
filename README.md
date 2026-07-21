@@ -5,7 +5,7 @@ DevStorageDrawer is a configurable single-item storage-drawer plugin for Paper 1
 ## Requirements
 
 - Java 21 or newer
-- Paper 1.19.4 or newer
+- Paper 1.19.4 or newer; Folia support is enabled on newer Folia versions
 - Optional: Geyser/Floodgate for Bedrock player detection and fallback rendering
 
 Builds use the included Gradle wrapper and target the Paper API as a compile-only dependency.
@@ -19,7 +19,7 @@ Builds use the included Gradle wrapper and target the Paper API as a compile-onl
 - Java ItemDisplay/TextDisplay rendering with Bedrock fallback entities when Floodgate is available
 - Safe filled-drawer break handling with owner-bound contents parcels
 - Persistent state recovery, repair, explicit capacity migration, and journaled transactions
-- Paper-safe scheduling and a public API for integrations
+- Paper-safe scheduling, newer-version Folia support, and a public API for integrations
 
 Multi-item storage, crafting recipes, locking, voiding, controllers, remotes, and personal security are outside the current v1 scope.
 
