@@ -14,24 +14,24 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.1.2.build.74-stable")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     compileOnly("org.geysermc.floodgate:api:2.2.5-SNAPSHOT")
     compileOnly("org.geysermc.geyser:api:2.10.0-SNAPSHOT")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.17")
 
-    testImplementation("io.papermc.paper:paper-api:26.1.2.build.74-stable")
+    testImplementation("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
 tasks {
     withType<JavaCompile>().configureEach {
-        options.release = 25
+        options.release = 21
         options.encoding = "UTF-8"
     }
 
@@ -40,7 +40,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("26.1.2")
+        minecraftVersion("1.20.4")
         jvmArgs("-Xms1G", "-Xmx2G")
     }
 

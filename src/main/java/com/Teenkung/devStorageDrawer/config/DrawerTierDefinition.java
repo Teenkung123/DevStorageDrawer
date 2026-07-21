@@ -9,7 +9,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.persistence.PersistentDataType;
 
 /** Configured presentation and runtime definition of one custom barrel item. */
@@ -37,9 +36,7 @@ public record DrawerTierDefinition(
         meta.displayName(itemName);
         meta.lore(itemLore);
         if (customModelData != null) {
-            final CustomModelDataComponent modelData = meta.getCustomModelDataComponent();
-            modelData.setFloats(List.of(customModelData.floatValue()));
-            meta.setCustomModelDataComponent(modelData);
+            meta.setCustomModelData(customModelData);
         }
         meta.getPersistentDataContainer().set(DrawerPdcKeys.TIER_ID, PersistentDataType.STRING, tier.id());
         item.setItemMeta(meta);

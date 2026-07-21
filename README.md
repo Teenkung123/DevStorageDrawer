@@ -1,11 +1,11 @@
 # DevStorageDrawer
 
-DevStorageDrawer is a configurable single-item storage-drawer plugin for Paper and Folia 26.1.2. It uses tagged vanilla barrels as the physical storage mirror, keeps the logical item total in persistent data, and supports vanilla hopper automation without requiring NMS, reflection, ProtocolLib, or an NBT API.
+DevStorageDrawer is a configurable single-item storage-drawer plugin for Paper and Folia 1.20.4+. It uses tagged vanilla barrels as the physical storage mirror, keeps the logical item total in persistent data, and supports vanilla hopper automation without requiring NMS, reflection, ProtocolLib, or an NBT API.
 
 ## Requirements
 
-- Java 25
-- Paper or Folia 26.1.2
+- Java 21 or newer
+- Paper or Folia 1.20.4 or newer
 - Optional: Geyser/Floodgate for Bedrock player detection and fallback rendering
 
 Builds use the included Gradle wrapper and target the Paper API as a compile-only dependency.
