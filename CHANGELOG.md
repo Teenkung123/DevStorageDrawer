@@ -2,6 +2,11 @@
 
 All notable changes to DevStorageDrawer are documented here.
 
+## 1.0.2
+
+- Added Paper 1.19.4 compatibility and Java 17 bytecode output.
+- Retained Paper support across newer versions, with Folia scheduler support when available.
+
 ## 1.0.1
 
 - Added optional WorldGuard protection for player drawer withdrawals.

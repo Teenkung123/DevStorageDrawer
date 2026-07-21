@@ -25,7 +25,7 @@ Multi-item storage, crafting recipes, locking, voiding, controllers, remotes, an
 
 ## Release
 
-The current release line is **1.0.1**. Release jars and their SHA-256 checksums
+The current release line is **1.0.2**. Release jars and their SHA-256 checksums
 are distributed through the [GitHub Releases page](https://github.com/Teenkung123/DevStorageDrawer/releases).
 Verify the checksum before copying a jar to a production server.
 
