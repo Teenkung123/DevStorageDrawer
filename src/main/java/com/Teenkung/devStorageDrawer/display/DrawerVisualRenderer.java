@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -40,8 +39,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Transformation;
+import org.bukkit.util.Consumer;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 /**
  * Maintains Java display entities and a Bedrock-only armor-stand fallback for a drawer.
@@ -280,7 +283,7 @@ public final class DrawerVisualRenderer implements Listener {
         }
         final String role = entity.getPersistentDataContainer().get(DrawerDisplayKeys.ROLE, PersistentDataType.STRING);
         if (role == null || bedrockPlayers.isBedrock(event.getPlayer()) != role.startsWith("bedrock_")) {
-            event.setCancelled(true);
+            event.getPlayer().hideEntity(plugin, entity);
         }
     }
 
@@ -323,7 +326,7 @@ public final class DrawerVisualRenderer implements Listener {
         tag(display, drawer, "java_name");
         display.setVisibleByDefault(true);
         display.setBillboard(Display.Billboard.FIXED);
-        display.setAlignment(TextDisplay.TextAlignment.CENTER);
+        display.setAlignment(TextDisplay.TextAligment.CENTER);
         display.text(displayName(template));
         applyTextPresentation(display, layout, settings.visuals().nameOffsetY());
     }
@@ -338,7 +341,7 @@ public final class DrawerVisualRenderer implements Listener {
         tag(display, drawer, "java_amount");
         display.setVisibleByDefault(true);
         display.setBillboard(Display.Billboard.FIXED);
-        display.setAlignment(TextDisplay.TextAlignment.CENTER);
+        display.setAlignment(TextDisplay.TextAligment.CENTER);
         display.text(amountText(total, capacity));
         applyTextPresentation(display, layout, settings.visuals().amountOffsetY());
     }
@@ -526,14 +529,14 @@ public final class DrawerVisualRenderer implements Listener {
     private void applyItemPresentation(final ItemDisplay display, final FaceLayout layout) {
         display.setBrightness(FULL_BRIGHTNESS);
         display.setRotation(0F, 0F);
-        display.setTransformationMatrix(new Matrix4f()
+        display.setTransformation(transformation(new Matrix4f()
                 .rotate(itemRotation(layout.face()))
                 .translate(0F, (float) settings.visuals().itemOffsetY(), (float) -settings.visuals().frontOffset())
                 .scale(
                         settings.visuals().itemScale(),
                         settings.visuals().itemScale(),
                         settings.visuals().itemDepthScale()
-                ));
+                )));
     }
 
     private void applyTextPresentation(
@@ -548,9 +551,18 @@ public final class DrawerVisualRenderer implements Listener {
         if (layout.face().getModY() != 0) {
             matrix = matrix.rotate((float) Math.PI, 0F, 1F, 0F);
         }
-        display.setTransformationMatrix(matrix
+        display.setTransformation(transformation(matrix
                 .translate(0F, (float) verticalOffset, (float) settings.visuals().frontOffset())
-                .scale(settings.visuals().textScale()));
+                .scale(settings.visuals().textScale())));
+    }
+
+    private static Transformation transformation(final Matrix4f matrix) {
+        return new Transformation(
+                matrix.getTranslation(new Vector3f()),
+                matrix.getUnnormalizedRotation(new Quaternionf()),
+                matrix.getScale(new Vector3f()),
+                new Quaternionf()
+        );
     }
 
     private static long countPhysical(final Barrel barrel, final DrawerState state) {

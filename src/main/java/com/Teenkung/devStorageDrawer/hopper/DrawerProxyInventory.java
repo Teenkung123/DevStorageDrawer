@@ -172,7 +172,7 @@ public final class DrawerProxyInventory {
         long remaining = amount;
         for (int slot = 0; slot < inventory.getSize() && remaining > 0L; slot++) {
             final ItemStack current = inventory.getItem(slot);
-            if (current == null || current.isEmpty()) {
+            if (current == null || current.getType().isAir() || current.getAmount() <= 0) {
                 continue;
             }
             if (!DrawerItemIdentity.matches(template, current)) {
