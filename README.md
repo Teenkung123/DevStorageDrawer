@@ -60,7 +60,7 @@ Players using placed drawers require `devstoragedrawer.use`. The parent permissi
 
 ## Public API
 
-Third-party integrations should use the contracts under `com.teenkung.devstoragedrawer.api`. The API is published through Bukkit's `ServicesManager` and exposes immutable snapshots, query operations, transfers, and drawer transaction events. See [API.md](API.md) for the integration contract and transaction ownership rules.
+Third-party integrations should use the contracts under `com.Teenkung.devStorageDrawer.api`. The API is published through Bukkit's `ServicesManager` and exposes immutable snapshots, query operations, transfers, and drawer transaction events. See [API.md](API.md) for the integration contract and transaction ownership rules.
 
 ## Configuration
 

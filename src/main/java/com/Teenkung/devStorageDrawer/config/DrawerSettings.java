@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.config;
+package com.Teenkung.devStorageDrawer.config;
 
 import java.util.Map;
 import java.util.Objects;

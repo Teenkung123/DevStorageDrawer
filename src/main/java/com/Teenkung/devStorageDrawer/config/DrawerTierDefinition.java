@@ -1,7 +1,7 @@
-package com.teenkung.devstoragedrawer.config;
+package com.Teenkung.devStorageDrawer.config;
 
-import com.teenkung.devstoragedrawer.domain.DrawerTier;
-import com.teenkung.devstoragedrawer.persistence.DrawerPdcKeys;
+import com.Teenkung.devStorageDrawer.domain.DrawerTier;
+import com.Teenkung.devStorageDrawer.persistence.DrawerPdcKeys;
 import java.util.List;
 import java.util.Objects;
 import net.kyori.adventure.text.Component;

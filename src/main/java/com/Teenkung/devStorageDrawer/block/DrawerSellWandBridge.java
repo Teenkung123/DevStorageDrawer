@@ -1,15 +1,15 @@
-package com.teenkung.devstoragedrawer.block;
+package com.Teenkung.devStorageDrawer.block;
 
-import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
-import com.teenkung.devstoragedrawer.domain.DrawerInvariantViolationException;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalKind;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalPhase;
-import com.teenkung.devstoragedrawer.domain.DrawerProxyJournal;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerStorageTransaction;
-import com.teenkung.devstoragedrawer.hopper.DrawerHopperBridge;
-import com.teenkung.devstoragedrawer.hopper.DrawerProxyInventory;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateReadResult;
+import com.Teenkung.devStorageDrawer.api.DrawerChangeCause;
+import com.Teenkung.devStorageDrawer.domain.DrawerInvariantViolationException;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalKind;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalPhase;
+import com.Teenkung.devStorageDrawer.domain.DrawerProxyJournal;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerStorageTransaction;
+import com.Teenkung.devStorageDrawer.hopper.DrawerHopperBridge;
+import com.Teenkung.devStorageDrawer.hopper.DrawerProxyInventory;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateReadResult;
 import java.util.Objects;
 import java.util.UUID;
 import org.bukkit.Bukkit;

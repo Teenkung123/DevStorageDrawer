@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

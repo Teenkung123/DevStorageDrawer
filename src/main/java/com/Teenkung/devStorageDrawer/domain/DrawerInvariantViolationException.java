@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 /**
  * Signals an impossible storage state. Callers must reconcile or quarantine the drawer instead

@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.api;
+package com.Teenkung.devStorageDrawer.api;
 
 /** Outcome of a logical drawer lookup. */
 public enum DrawerQueryStatus {

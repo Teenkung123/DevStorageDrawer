@@ -1,6 +1,6 @@
-package com.teenkung.devstoragedrawer.parcel;
+package com.Teenkung.devStorageDrawer.parcel;
 
-import com.teenkung.devstoragedrawer.domain.DrawerItemIdentity;
+import com.Teenkung.devStorageDrawer.domain.DrawerItemIdentity;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

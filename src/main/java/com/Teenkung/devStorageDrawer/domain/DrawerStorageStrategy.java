@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import org.bukkit.inventory.ItemStack;
 

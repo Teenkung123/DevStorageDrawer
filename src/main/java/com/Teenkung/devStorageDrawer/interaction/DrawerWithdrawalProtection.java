@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.interaction;
+package com.Teenkung.devStorageDrawer.interaction;
 
 import org.bukkit.block.Barrel;
 import org.bukkit.entity.Player;

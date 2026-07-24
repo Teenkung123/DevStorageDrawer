@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,5 +38,31 @@ class DrawerCapacityTest {
                 DrawerInvariantViolationException.class,
                 () -> DrawerCapacity.totalAfterMirrorDelta(100L, 10L, 11L, 100L)
         );
+    }
+
+    @Test
+    void exposesOverCapacityMirrorDeltaForLosslessRecovery() {
+        assertEquals(
+                524_404L,
+                DrawerCapacity.totalAfterMirrorDeltaWithoutCapacityLimit(524_281L, 1_605L, 1_728L)
+        );
+    }
+
+    @Test
+    void nearFullMirrorLeavesOnlyRealLogicalCapacityForEventlessInput() {
+        final long target = DrawerCapacity.capacityProtectedMirrorTarget(
+                524_281L,
+                524_288L,
+                1_728L,
+                1_605L
+        );
+
+        assertEquals(1_721L, target);
+        assertEquals(7L, 1_728L - target);
+    }
+
+    @Test
+    void capacityProtectionDoesNotInflateLowStockMirror() {
+        assertEquals(123L, DrawerCapacity.capacityProtectedMirrorTarget(1_000L, 524_288L, 1_728L, 123L));
     }
 }

@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.api;
+package com.Teenkung.devStorageDrawer.api;
 
 /** Outcome of an external logical item transfer. */
 public enum DrawerTransferStatus {

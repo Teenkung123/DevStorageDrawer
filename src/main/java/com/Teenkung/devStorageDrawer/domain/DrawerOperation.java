@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 /** The source of a storage mutation, used to enforce its total-count invariant. */
 public enum DrawerOperation {

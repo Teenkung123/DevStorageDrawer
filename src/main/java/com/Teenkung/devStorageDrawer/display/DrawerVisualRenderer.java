@@ -1,14 +1,15 @@
-package com.teenkung.devstoragedrawer.display;
+package com.Teenkung.devStorageDrawer.display;
 
-import com.teenkung.devstoragedrawer.bedrock.BedrockPlayerDetector;
-import com.teenkung.devstoragedrawer.config.DrawerSettings;
-import com.teenkung.devstoragedrawer.domain.DrawerDisplayLink;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateReadResult;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateRepository;
-import com.teenkung.devstoragedrawer.scheduler.FoliaExecution;
+import com.Teenkung.devStorageDrawer.bedrock.BedrockPlayerDetector;
+import com.Teenkung.devStorageDrawer.config.DrawerSettings;
+import com.Teenkung.devStorageDrawer.domain.DrawerDisplayLink;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateReadResult;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateRepository;
+import com.Teenkung.devStorageDrawer.scheduler.FoliaExecution;
 import io.papermc.paper.event.player.PlayerTrackEntityEvent;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -27,6 +28,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -61,6 +63,7 @@ public final class DrawerVisualRenderer implements Listener {
     private final DrawerStateRepository repository;
     private final BedrockPlayerDetector bedrockPlayers;
     private final ConcurrentMap<RenderKey, Location> pendingRenders = new ConcurrentHashMap<>();
+    private final Set<UUID> reconciledBedrockVisibility = ConcurrentHashMap.newKeySet();
     private volatile DrawerSettings settings;
 
     public DrawerVisualRenderer(
@@ -282,9 +285,7 @@ public final class DrawerVisualRenderer implements Listener {
             return;
         }
         final String role = entity.getPersistentDataContainer().get(DrawerDisplayKeys.ROLE, PersistentDataType.STRING);
-        if (role == null || bedrockPlayers.isBedrock(event.getPlayer()) != role.startsWith("bedrock_")) {
-            event.getPlayer().hideEntity(plugin, entity);
-        }
+        applyVisibility(event.getPlayer(), entity, role);
     }
 
     private <T extends Entity> T resolveOrSpawn(
@@ -353,7 +354,7 @@ public final class DrawerVisualRenderer implements Listener {
             final FaceLayout layout
     ) {
         tag(stand, drawer, "bedrock_item");
-        stand.setVisibleByDefault(true);
+        stand.setVisibleByDefault(false);
         stand.setGravity(false);
         stand.setInvulnerable(true);
         stand.setMarker(settings.bedrock().armorStandMarker());
@@ -374,7 +375,7 @@ public final class DrawerVisualRenderer implements Listener {
             final FaceLayout layout
     ) {
         tag(stand, drawer, "bedrock_text");
-        stand.setVisibleByDefault(true);
+        stand.setVisibleByDefault(false);
         stand.setGravity(false);
         stand.setInvulnerable(true);
         stand.setMarker(settings.bedrock().armorStandMarker());
@@ -415,7 +416,7 @@ public final class DrawerVisualRenderer implements Listener {
 
     private void updateBedrockItem(final ArmorStand stand, final ItemStack template, final FaceLayout layout) {
         update(stand, entity -> {
-            entity.setVisibleByDefault(true);
+            secureBedrockVisibility(entity);
             if (entity.getEquipment() != null && settings.bedrock().armorStandShowItem()) {
                 entity.getEquipment().setHelmet(template.clone());
             }
@@ -432,7 +433,7 @@ public final class DrawerVisualRenderer implements Listener {
             final FaceLayout layout
     ) {
         update(stand, entity -> {
-            entity.setVisibleByDefault(true);
+            secureBedrockVisibility(entity);
             entity.customName(bedrockText(template, total, capacity));
             entity.setCustomNameVisible(settings.bedrock().armorStandShowName());
             entity.setRotation(layout.yaw(), layout.pitch());
@@ -459,10 +460,49 @@ public final class DrawerVisualRenderer implements Listener {
 
     private void remove(final Entity entity) {
         if (entity != null) {
+            reconciledBedrockVisibility.remove(entity.getUniqueId());
             if (entity.isValid()) {
                 execution.runOnEntity(entity, ignored -> entity.remove(), () -> { });
             }
         }
+    }
+
+    /**
+     * Bedrock fallback entities fail closed: the server never sends them by default, and only a
+     * positively identified Bedrock player receives an explicit visibility grant. The one-time
+     * tracked-player reconciliation also repairs persistent entities created by older releases or
+     * left tracked across a plugin reload.
+     */
+    private void secureBedrockVisibility(final ArmorStand entity) {
+        final Set<Player> trackedPlayers = reconciledBedrockVisibility.add(entity.getUniqueId())
+                ? Set.copyOf(entity.getTrackedPlayers())
+                : Set.of();
+        final String role = entity.getPersistentDataContainer().get(DrawerDisplayKeys.ROLE, PersistentDataType.STRING);
+        entity.setVisibleByDefault(false);
+        for (final Player player : trackedPlayers) {
+            execution.runOnEntity(player, ignored -> applyVisibility(player, entity, role), () -> { });
+        }
+    }
+
+    private void applyVisibility(final Player player, final Entity entity, final String role) {
+        if (shouldShowTo(bedrockPlayers.isBedrock(player), role)) {
+            player.showEntity(plugin, entity);
+        } else {
+            player.hideEntity(plugin, entity);
+        }
+    }
+
+    static boolean shouldShowTo(final boolean bedrockPlayer, final String role) {
+        if (role == null) {
+            return false;
+        }
+        if (role.startsWith("bedrock_")) {
+            return bedrockPlayer;
+        }
+        if (role.startsWith("java_")) {
+            return !bedrockPlayer;
+        }
+        return false;
     }
 
     private void removeDisabledDisplays(final World world, final DrawerDisplayLink link) {

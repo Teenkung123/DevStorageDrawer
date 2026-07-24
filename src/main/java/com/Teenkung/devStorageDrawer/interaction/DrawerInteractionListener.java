@@ -1,16 +1,16 @@
-package com.teenkung.devstoragedrawer.interaction;
+package com.Teenkung.devStorageDrawer.interaction;
 
-import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
-import com.teenkung.devstoragedrawer.block.DrawerBlockAccess;
-import com.teenkung.devstoragedrawer.block.DrawerRuntime;
-import com.teenkung.devstoragedrawer.block.DrawerRuntimeContext;
-import com.teenkung.devstoragedrawer.config.DrawerTierDefinition;
-import com.teenkung.devstoragedrawer.domain.DrawerInvariantViolationException;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerStorageTransaction;
-import com.teenkung.devstoragedrawer.hopper.DrawerHopperBridge;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateReadResult;
-import com.teenkung.devstoragedrawer.receipt.DrawerWithdrawalCoordinator;
+import com.Teenkung.devStorageDrawer.api.DrawerChangeCause;
+import com.Teenkung.devStorageDrawer.block.DrawerBlockAccess;
+import com.Teenkung.devStorageDrawer.block.DrawerRuntime;
+import com.Teenkung.devStorageDrawer.block.DrawerRuntimeContext;
+import com.Teenkung.devStorageDrawer.config.DrawerTierDefinition;
+import com.Teenkung.devStorageDrawer.domain.DrawerInvariantViolationException;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerStorageTransaction;
+import com.Teenkung.devStorageDrawer.hopper.DrawerHopperBridge;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateReadResult;
+import com.Teenkung.devStorageDrawer.receipt.DrawerWithdrawalCoordinator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -152,8 +152,12 @@ public final class DrawerInteractionListener implements Listener {
         withdraw(player, barrel, player.isSneaking());
     }
 
-    /** A released quick attack is a withdrawal; a held attack continues toward BlockBreakEvent. */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    /**
+     * A released quick attack is a withdrawal; a held attack continues toward BlockBreakEvent.
+     * Damage-event cancellation must not suppress this signal because withdraw performs the
+     * drawer permission and external protection checks at the transaction boundary.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockDamageAbort(final BlockDamageAbortEvent event) {
         final Player player = event.getPlayer();
         final PendingBlockWithdrawal pending = this.pendingBlockWithdrawals.remove(player.getUniqueId());
@@ -337,8 +341,22 @@ public final class DrawerInteractionListener implements Listener {
     }
 
     private void withdraw(final Player player, final Barrel barrel, final boolean bulk) {
+        if (!canUse(player)) {
+            message(player, "general.no-permission");
+            return;
+        }
         if (!this.withdrawalProtection.canWithdraw(player, barrel)) {
             message(player, "general.no-permission");
+            return;
+        }
+        final DrawerHopperBridge.OverflowRecoveryResult overflowRecovery =
+                this.hoppers.recoverCapacityOverflow(player, barrel);
+        if (overflowRecovery == DrawerHopperBridge.OverflowRecoveryResult.STARTED) {
+            message(player, "drawer.withdrawal-pending");
+            return;
+        }
+        if (overflowRecovery == DrawerHopperBridge.OverflowRecoveryResult.FAILED) {
+            message(player, "general.configuration-error");
             return;
         }
         final ReadyDrawer ready = readyDrawer(barrel);

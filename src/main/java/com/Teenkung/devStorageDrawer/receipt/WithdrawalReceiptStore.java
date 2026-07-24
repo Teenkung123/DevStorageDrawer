@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.receipt;
+package com.Teenkung.devStorageDrawer.receipt;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;

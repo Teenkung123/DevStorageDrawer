@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.redstone;
+package com.Teenkung.devStorageDrawer.redstone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

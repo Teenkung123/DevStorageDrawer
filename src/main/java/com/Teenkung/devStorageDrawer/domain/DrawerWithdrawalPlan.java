@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -23,7 +23,8 @@ public record DrawerWithdrawalPlan(
         if (!journaledState.hasPendingProxyJournal()
                 || !appliedJournaledState.hasPendingProxyJournal()
                 || committedState.hasPendingProxyJournal()
-                || journal.kind() != DrawerJournalKind.PLAYER_WITHDRAWAL
+                || (journal.kind() != DrawerJournalKind.PLAYER_WITHDRAWAL
+                && journal.kind() != DrawerJournalKind.OVERFLOW_RECOVERY)
                 || journal.phase() != DrawerJournalPhase.PREPARED
                 || appliedJournaledState.proxyJournal().orElseThrow().phase() != DrawerJournalPhase.APPLIED) {
             throw new DrawerInvariantViolationException("Withdrawal journal state sequence is invalid");
@@ -39,6 +40,23 @@ public record DrawerWithdrawalPlan(
             final UUID ownerId,
             final long createdAtEpochMillis
     ) {
+        return forTransaction(transaction, ownerId, createdAtEpochMillis, DrawerJournalKind.PLAYER_WITHDRAWAL);
+    }
+
+    public static DrawerWithdrawalPlan forOverflowRecovery(
+            final DrawerStorageTransaction transaction,
+            final UUID ownerId,
+            final long createdAtEpochMillis
+    ) {
+        return forTransaction(transaction, ownerId, createdAtEpochMillis, DrawerJournalKind.OVERFLOW_RECOVERY);
+    }
+
+    private static DrawerWithdrawalPlan forTransaction(
+            final DrawerStorageTransaction transaction,
+            final UUID ownerId,
+            final long createdAtEpochMillis,
+            final DrawerJournalKind kind
+    ) {
         Objects.requireNonNull(transaction, "transaction");
         if (transaction.operation() != DrawerOperation.PLAYER_WITHDRAW || !transaction.accepted()) {
             throw new DrawerValidationException("A withdrawal plan requires an accepted player withdrawal transaction");
@@ -48,7 +66,7 @@ public record DrawerWithdrawalPlan(
         final long totalAfter = transaction.stateAfter().totalForPhysical(transaction.physicalAfter());
         final DrawerProxyJournal journal = new DrawerProxyJournal(
                 UUID.randomUUID(),
-                DrawerJournalKind.PLAYER_WITHDRAWAL,
+                kind,
                 DrawerJournalPhase.PREPARED,
                 Objects.requireNonNull(ownerId, "ownerId"),
                 totalBefore,
@@ -60,10 +78,13 @@ public record DrawerWithdrawalPlan(
         final DrawerState appliedState = transaction.stateAfter().hasTemplate()
                 ? transaction.stateAfter()
                 : transaction.stateAfter().withTemplate(transaction.itemTemplate().orElseThrow());
+        final DrawerState committedState = kind == DrawerJournalKind.OVERFLOW_RECOVERY
+                ? transaction.stateAfter().withCapacitySnapshot(journal.totalAfter())
+                : transaction.stateAfter();
         return new DrawerWithdrawalPlan(
                 transaction.stateBefore().withProxyJournal(journal),
                 appliedState.withProxyJournal(journal.withPhase(DrawerJournalPhase.APPLIED)),
-                transaction.stateAfter(),
+                committedState,
                 journal
         );
     }

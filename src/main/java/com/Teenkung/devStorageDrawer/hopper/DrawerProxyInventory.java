@@ -1,6 +1,6 @@
-package com.teenkung.devstoragedrawer.hopper;
+package com.Teenkung.devStorageDrawer.hopper;
 
-import com.teenkung.devstoragedrawer.domain.DrawerItemIdentity;
+import com.Teenkung.devStorageDrawer.domain.DrawerItemIdentity;
 import java.util.Objects;
 import org.bukkit.block.Barrel;
 import org.bukkit.inventory.Inventory;

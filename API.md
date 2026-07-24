@@ -1,7 +1,7 @@
 # DevStorageDrawer API
 
 DevStorageDrawer exposes a stable, Folia-safe contract in
-`com.teenkung.devstoragedrawer.api`. Add DevStorageDrawer as a compile-only
+`com.Teenkung.devStorageDrawer.api`. Add DevStorageDrawer as a compile-only
 dependency and declare it as a hard `depend` (or a `softdepend` when the
 integration is optional).
 
@@ -13,8 +13,7 @@ Resolve the API through Bukkit's service registry. `DevStorageDrawer#getApi()`
 is also available as a convenience for a hard dependency.
 
 ```java
-final DevStorageDrawerApi api = Bukkit.getServicesManager()
-        .load(DevStorageDrawerApi.class);
+final DevStorageDrawerApi api = Bukkit.getServicesManager().load(DevStorageDrawerApi.class);
 if (api == null) {
     return;
 }
@@ -51,8 +50,7 @@ blindly retry or release it. A future API version may add drawer-side operation
 deduplication for exactly-once economy or shop workflows.
 
 ```java
-final DrawerOperationContext context = DrawerOperationContext.forActor(
-        this, "market purchase", player.getUniqueId());
+final DrawerOperationContext context = DrawerOperationContext.forActor(this, "market purchase", player.getUniqueId());
 
 api.deposit(drawer, offeredStack, offeredStack.getAmount(), context)
         .thenAccept(result -> {

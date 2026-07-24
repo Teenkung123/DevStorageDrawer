@@ -1,13 +1,13 @@
-package com.teenkung.devstoragedrawer.persistence;
+package com.Teenkung.devStorageDrawer.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.teenkung.devstoragedrawer.domain.DrawerDisplayLink;
-import com.teenkung.devstoragedrawer.domain.DrawerProxyJournal;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerValidationException;
+import com.Teenkung.devStorageDrawer.domain.DrawerDisplayLink;
+import com.Teenkung.devStorageDrawer.domain.DrawerProxyJournal;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerValidationException;
 import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

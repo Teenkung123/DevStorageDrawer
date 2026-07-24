@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.api;
+package com.Teenkung.devStorageDrawer.api;
 
 /** Reason reported with a committed drawer-state change. */
 public enum DrawerChangeCause {

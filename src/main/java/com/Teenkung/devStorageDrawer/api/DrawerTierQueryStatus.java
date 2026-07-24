@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.api;
+package com.Teenkung.devStorageDrawer.api;
 
 /** Outcome of reading configured public drawer tier metadata. */
 public enum DrawerTierQueryStatus {

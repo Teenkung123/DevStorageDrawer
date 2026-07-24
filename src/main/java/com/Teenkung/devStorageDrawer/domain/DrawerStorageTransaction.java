@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -117,6 +117,55 @@ public final class DrawerStorageTransaction {
                 0L,
                 null
         );
+    }
+
+    /**
+     * Converts a physical mirror input that exceeded the persisted capacity into a durable
+     * owner-bound withdrawal. The temporary capacity exists only while the receipt journal is
+     * pending; the committed state returns to the original capacity.
+     */
+    public static Optional<DrawerStorageTransaction> recoverMirrorOverflow(
+            final DrawerState state,
+            final long observedPhysicalCount
+    ) {
+        Objects.requireNonNull(state, "state");
+        DrawerCapacity.requireNonNegative(observedPhysicalCount, "observed physical proxy count");
+        if (!state.usesReservedMirror() || !state.hasTemplate() || state.hasPendingProxyJournal()
+                || observedPhysicalCount <= state.expectedMirrorCount()) {
+            return Optional.empty();
+        }
+
+        final long actualTotal = DrawerCapacity.totalAfterMirrorDeltaWithoutCapacityLimit(
+                state.storedTotal(),
+                state.expectedMirrorCount(),
+                observedPhysicalCount
+        );
+        if (actualTotal <= state.capacitySnapshot()) {
+            return Optional.empty();
+        }
+
+        final long overflow = actualTotal - state.capacitySnapshot();
+        final long physicalAfter = DrawerCapacity.checkedSubtract(
+                observedPhysicalCount,
+                overflow,
+                "Recovered physical mirror count"
+        );
+        final DrawerState expandedBefore = state.withCapacitySnapshot(actualTotal)
+                .withStoredTotalAndExpectedMirrorCount(actualTotal, observedPhysicalCount);
+        final DrawerState expandedAfter = expandedBefore.withStoredTotalAndExpectedMirrorCount(
+                state.capacitySnapshot(),
+                physicalAfter
+        );
+        return Optional.of(applied(
+                DrawerOperation.PLAYER_WITHDRAW,
+                expandedBefore,
+                expandedAfter,
+                observedPhysicalCount,
+                physicalAfter,
+                overflow,
+                overflow,
+                state.requireTemplate()
+        ));
     }
 
     public DrawerOperation operation() {

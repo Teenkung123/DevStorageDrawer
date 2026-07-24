@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.persistence;
+package com.Teenkung.devStorageDrawer.persistence;
 
 import org.bukkit.NamespacedKey;
 

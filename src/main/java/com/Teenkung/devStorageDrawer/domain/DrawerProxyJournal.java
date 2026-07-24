@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -23,8 +23,9 @@ public record DrawerProxyJournal(
         Objects.requireNonNull(operationId, "operationId");
         Objects.requireNonNull(kind, "kind");
         Objects.requireNonNull(phase, "phase");
-        if (kind == DrawerJournalKind.PLAYER_WITHDRAWAL && ownerId == null) {
-            throw new DrawerValidationException("Player-withdrawal journals require an owner id");
+        if ((kind == DrawerJournalKind.PLAYER_WITHDRAWAL || kind == DrawerJournalKind.OVERFLOW_RECOVERY)
+                && ownerId == null) {
+            throw new DrawerValidationException("Owner-bound journals require an owner id");
         }
         if (kind == DrawerJournalKind.PROXY_REBALANCE && ownerId != null) {
             throw new DrawerValidationException("Proxy-rebalance journals cannot have an owner id");

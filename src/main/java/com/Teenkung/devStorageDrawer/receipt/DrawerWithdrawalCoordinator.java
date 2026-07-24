@@ -1,18 +1,18 @@
-package com.teenkung.devstoragedrawer.receipt;
+package com.Teenkung.devStorageDrawer.receipt;
 
-import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
-import com.teenkung.devstoragedrawer.block.DrawerBlockAccess;
-import com.teenkung.devstoragedrawer.block.DrawerRuntimeContext;
-import com.teenkung.devstoragedrawer.domain.DrawerItemIdentity;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalKind;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalReconciliation;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalPhase;
-import com.teenkung.devstoragedrawer.domain.DrawerProxyJournal;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerStorageTransaction;
-import com.teenkung.devstoragedrawer.domain.DrawerWithdrawalPlan;
-import com.teenkung.devstoragedrawer.hopper.DrawerProxyInventory;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateReadResult;
+import com.Teenkung.devStorageDrawer.api.DrawerChangeCause;
+import com.Teenkung.devStorageDrawer.block.DrawerBlockAccess;
+import com.Teenkung.devStorageDrawer.block.DrawerRuntimeContext;
+import com.Teenkung.devStorageDrawer.domain.DrawerItemIdentity;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalKind;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalReconciliation;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalPhase;
+import com.Teenkung.devStorageDrawer.domain.DrawerProxyJournal;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerStorageTransaction;
+import com.Teenkung.devStorageDrawer.domain.DrawerWithdrawalPlan;
+import com.Teenkung.devStorageDrawer.hopper.DrawerProxyInventory;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateReadResult;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,11 +76,34 @@ public final class DrawerWithdrawalCoordinator implements Listener {
             final Barrel barrel,
             final DrawerStorageTransaction transaction
     ) {
-        final DrawerWithdrawalPlan plan = DrawerWithdrawalPlan.forTransaction(
+        return begin(
+                player,
+                barrel,
                 transaction,
-                player.getUniqueId(),
-                System.currentTimeMillis()
+                DrawerWithdrawalPlan.forTransaction(transaction, player.getUniqueId(), System.currentTimeMillis())
         );
+    }
+
+    /** Returns already-inserted over-capacity items through the same durable receipt protocol. */
+    public boolean beginOverflowRecovery(
+            final Player player,
+            final Barrel barrel,
+            final DrawerStorageTransaction transaction
+    ) {
+        return begin(
+                player,
+                barrel,
+                transaction,
+                DrawerWithdrawalPlan.forOverflowRecovery(transaction, player.getUniqueId(), System.currentTimeMillis())
+        );
+    }
+
+    private boolean begin(
+            final Player player,
+            final Barrel barrel,
+            final DrawerStorageTransaction transaction,
+            final DrawerWithdrawalPlan plan
+    ) {
         if (!context.repository().save(barrel, plan.journaledState())) {
             return false;
         }
@@ -117,7 +140,7 @@ public final class DrawerWithdrawalCoordinator implements Listener {
         final DrawerStateReadResult read = context.repository().read(barrel);
         return read instanceof DrawerStateReadResult.Valid valid
                 && valid.state().proxyJournal()
-                .filter(journal -> journal.kind() == DrawerJournalKind.PLAYER_WITHDRAWAL)
+                .filter(journal -> isOwnerWithdrawal(journal.kind()))
                 .map(journal -> inFlightOperations.contains(journal.operationId()))
                 .orElse(false);
     }
@@ -130,13 +153,18 @@ public final class DrawerWithdrawalCoordinator implements Listener {
             final Runnable resume
     ) {
         final DrawerProxyJournal journal = state.proxyJournal().orElse(null);
-        if (journal == null || journal.kind() != DrawerJournalKind.PLAYER_WITHDRAWAL) {
+        if (journal == null || !isOwnerWithdrawal(journal.kind())) {
             throw new IllegalArgumentException("Withdrawal recovery requires a player-withdrawal journal");
         }
         // A live operation has already persisted its PREPARED journal and is waiting for its
         // receipt fsync. Treating that journal as a crash here would remove the receipt while the
         // original operation is still about to commit it.
         if (inFlightOperations.contains(journal.operationId())) {
+            return;
+        }
+        if (journal.kind() == DrawerJournalKind.OVERFLOW_RECOVERY
+                && journal.phase() == DrawerJournalPhase.PREPARED) {
+            resumePreparedOverflow(barrel, state, journal, resume);
             return;
         }
         final DrawerJournalReconciliation reconciliation = context.storage().reconcile(state, observedPhysical);
@@ -161,6 +189,104 @@ public final class DrawerWithdrawalCoordinator implements Listener {
             return;
         }
         persistCommit(barrel.getLocation(), journal, resume);
+    }
+
+    /** Resumes an overflow receipt without ever rolling its temporary expanded capacity into normal use. */
+    private void resumePreparedOverflow(
+            final Barrel barrel,
+            final DrawerState state,
+            final DrawerProxyJournal journal,
+            final Runnable resume
+    ) {
+        final long count;
+        try {
+            count = Math.subtractExact(journal.totalBefore(), journal.totalAfter());
+            if (count <= 0L || journal.physicalBefore() - journal.physicalTarget() != count) {
+                throw new ArithmeticException("overflow journal counts do not match");
+            }
+        } catch (final ArithmeticException exception) {
+            context.logger().severe("Quarantined overflow recovery " + journal.operationId()
+                    + " because its counts are invalid");
+            return;
+        }
+        if (!state.hasTemplate() || !inFlightOperations.add(journal.operationId())) {
+            return;
+        }
+
+        final WithdrawalReceipt existing = store.find(journal.operationId()).orElse(null);
+        if (existing != null && !existing.ownerId().equals(journal.ownerId())) {
+            finishOperation(journal.operationId());
+            context.logger().severe("Quarantined overflow recovery " + journal.operationId()
+                    + " because its durable receipt has the wrong owner");
+            return;
+        }
+
+        final Location location = barrel.getLocation();
+        if (existing != null) {
+            applyPreparedOverflow(location, journal, resume);
+            return;
+        }
+        final WithdrawalReceipt replacement = receipt(barrel, state.requireTemplate(), journal, count);
+        context.execution().runAsync(task -> {
+            try {
+                store.prepare(replacement);
+                context.execution().executeAt(location, () -> applyPreparedOverflow(location, journal, resume));
+            } catch (final IOException exception) {
+                finishOperation(journal.operationId());
+                context.logger().severe("Could not persist overflow recovery receipt " + journal.operationId()
+                        + ": " + exception.getMessage());
+            }
+        });
+    }
+
+    private void applyPreparedOverflow(
+            final Location location,
+            final DrawerProxyJournal journal,
+            final Runnable resume
+    ) {
+        final Barrel barrel = liveJournaledBarrel(location, journal.operationId());
+        if (barrel == null) {
+            finishOperation(journal.operationId());
+            return;
+        }
+        final DrawerStateReadResult read = context.repository().read(barrel);
+        if (!(read instanceof DrawerStateReadResult.Valid valid)) {
+            finishOperation(journal.operationId());
+            return;
+        }
+        final DrawerBlockAccess.PhysicalStock stock = context.blocks().inspect(barrel, valid.state());
+        if (!stock.matchesTemplate()) {
+            finishOperation(journal.operationId());
+            context.logger().severe("Quarantined overflow recovery " + journal.operationId()
+                    + " because its physical item no longer matches");
+            return;
+        }
+
+        if (stock.count() < journal.physicalTarget() || stock.count() > journal.physicalBefore()) {
+            finishOperation(journal.operationId());
+            context.logger().severe("Quarantined overflow recovery " + journal.operationId()
+                    + " because its physical count changed to " + stock.count());
+            return;
+        }
+        final long remainingRemoval = stock.count() - journal.physicalTarget();
+        if (remainingRemoval > 0L && !DrawerProxyInventory.remove(
+                barrel, valid.state().requireTemplate(), remainingRemoval
+        )) {
+            finishOperation(journal.operationId());
+            return;
+        }
+
+        final DrawerState applied = valid.state()
+                .withStoredTotalAndExpectedMirrorCount(journal.totalAfter(), journal.physicalTarget())
+                .withProxyJournal(journal.withPhase(DrawerJournalPhase.APPLIED));
+        final Barrel afterRemoval = context.blocks().barrel(location.getBlock()).orElse(null);
+        if (afterRemoval == null || !context.repository().save(afterRemoval, applied)) {
+            finishOperation(journal.operationId());
+            context.logger().warning("Overflow recovery " + journal.operationId()
+                    + " changed proxy stock before its APPLIED phase could be saved; repair will retry it");
+            return;
+        }
+        persistCommit(location, journal, resume);
     }
 
     /**
@@ -309,7 +435,9 @@ public final class DrawerWithdrawalCoordinator implements Listener {
                                     + " became inconsistent after its receipt was made deliverable");
                             return;
                         }
-                        final DrawerState resolved = fresh.state();
+                        final DrawerState resolved = journal.kind() == DrawerJournalKind.OVERFLOW_RECOVERY
+                                ? fresh.state().withCapacitySnapshot(journal.totalAfter())
+                                : fresh.state();
                         if (context.repository().save(barrel, resolved)) {
                             context.notifyCommitted(barrel, resolved, stock.count(), DrawerChangeCause.PLAYER_WITHDRAW);
                             resume.run();
@@ -364,6 +492,14 @@ public final class DrawerWithdrawalCoordinator implements Listener {
             final DrawerProxyJournal journal,
             final Player player
     ) {
+        if (journal.kind() == DrawerJournalKind.OVERFLOW_RECOVERY) {
+            // Never expose the temporary expanded capacity as a completed rollback. Keep the
+            // PREPARED journal in place so the next interaction, watcher pass, or repair command
+            // resumes its owner-bound receipt without losing or accepting more items.
+            finishOperation(journal.operationId());
+            message(player, "general.configuration-error", Map.of());
+            return;
+        }
         final Barrel barrel = liveJournaledBarrel(location, journal.operationId());
         if (barrel == null) {
             removeReceiptAsync(journal.operationId());
@@ -522,6 +658,30 @@ public final class DrawerWithdrawalCoordinator implements Listener {
 
     private void finishOperation(final UUID operationId) {
         inFlightOperations.remove(operationId);
+    }
+
+    private static WithdrawalReceipt receipt(
+            final Barrel barrel,
+            final ItemStack template,
+            final DrawerProxyJournal journal,
+            final long count
+    ) {
+        return new WithdrawalReceipt(
+                journal.operationId(),
+                journal.ownerId(),
+                barrel.getWorld().getUID(),
+                barrel.getX(),
+                barrel.getY(),
+                barrel.getZ(),
+                template.serializeAsBytes(),
+                count,
+                WithdrawalReceiptStatus.PREPARED,
+                journal.createdAtEpochMillis()
+        );
+    }
+
+    private static boolean isOwnerWithdrawal(final DrawerJournalKind kind) {
+        return kind == DrawerJournalKind.PLAYER_WITHDRAWAL || kind == DrawerJournalKind.OVERFLOW_RECOVERY;
     }
 
     private void message(final Player player, final String key, final Map<String, ?> placeholders) {

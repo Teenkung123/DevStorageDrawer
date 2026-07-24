@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.display;
+package com.Teenkung.devStorageDrawer.display;
 
 import org.bukkit.NamespacedKey;
 

@@ -3,7 +3,7 @@ plugins {
     id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
-group = "com.teenkung.devstoragedrawer"
+group = "com.Teenkung.devStorageDrawer"
 version = providers.gradleProperty("version").orElse("1.0.0-SNAPSHOT").get()
 
 repositories {

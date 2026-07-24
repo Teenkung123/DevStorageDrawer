@@ -1,6 +1,6 @@
-package com.teenkung.devstoragedrawer.persistence;
+package com.Teenkung.devStorageDrawer.persistence;
 
-import com.teenkung.devstoragedrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
 import java.util.Objects;
 
 /**

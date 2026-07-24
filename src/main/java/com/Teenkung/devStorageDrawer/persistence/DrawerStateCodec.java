@@ -1,7 +1,7 @@
-package com.teenkung.devstoragedrawer.persistence;
+package com.Teenkung.devStorageDrawer.persistence;
 
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerValidationException;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerValidationException;
 import org.bukkit.inventory.ItemStack;
 
 /** Serializes only the persistent primitive payload; the PDC adapter is {@link DrawerPdcCodec}. */

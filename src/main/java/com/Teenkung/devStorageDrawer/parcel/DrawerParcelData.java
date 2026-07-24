@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.parcel;
+package com.Teenkung.devStorageDrawer.parcel;
 
 import java.util.Objects;
 import java.util.UUID;

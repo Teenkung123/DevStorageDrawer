@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.receipt;
+package com.Teenkung.devStorageDrawer.receipt;
 
 /** Durable state of a withdrawal receipt. */
 public enum WithdrawalReceiptStatus {

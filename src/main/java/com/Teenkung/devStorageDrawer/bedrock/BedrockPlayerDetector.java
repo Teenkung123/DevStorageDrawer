@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.bedrock;
+package com.Teenkung.devStorageDrawer.bedrock;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;

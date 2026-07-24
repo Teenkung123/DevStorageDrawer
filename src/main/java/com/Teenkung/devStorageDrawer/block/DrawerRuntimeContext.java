@@ -1,13 +1,13 @@
-package com.teenkung.devstoragedrawer.block;
+package com.Teenkung.devStorageDrawer.block;
 
-import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
-import com.teenkung.devstoragedrawer.config.DrawerMessages;
-import com.teenkung.devstoragedrawer.config.DrawerSettings;
-import com.teenkung.devstoragedrawer.config.DrawerTierDefinition;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerStorageStrategy;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateRepository;
-import com.teenkung.devstoragedrawer.scheduler.FoliaExecution;
+import com.Teenkung.devStorageDrawer.api.DrawerChangeCause;
+import com.Teenkung.devStorageDrawer.config.DrawerMessages;
+import com.Teenkung.devStorageDrawer.config.DrawerSettings;
+import com.Teenkung.devStorageDrawer.config.DrawerTierDefinition;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerStorageStrategy;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateRepository;
+import com.Teenkung.devStorageDrawer.scheduler.FoliaExecution;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;

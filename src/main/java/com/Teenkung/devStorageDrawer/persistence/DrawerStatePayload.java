@@ -1,7 +1,7 @@
-package com.teenkung.devstoragedrawer.persistence;
+package com.Teenkung.devStorageDrawer.persistence;
 
-import com.teenkung.devstoragedrawer.domain.DrawerDisplayLink;
-import com.teenkung.devstoragedrawer.domain.DrawerProxyJournal;
+import com.Teenkung.devStorageDrawer.domain.DrawerDisplayLink;
+import com.Teenkung.devStorageDrawer.domain.DrawerProxyJournal;
 import java.util.Arrays;
 import java.util.Objects;
 

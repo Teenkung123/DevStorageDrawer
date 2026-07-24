@@ -1,6 +1,6 @@
 name: DevStorageDrawer
 version: '${version}'
-main: com.teenkung.devstoragedrawer.DevStorageDrawer
+main: com.Teenkung.devStorageDrawer.DevStorageDrawer
 api-version: '1.19'
 load: POSTWORLD
 folia-supported: true

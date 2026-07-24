@@ -1,24 +1,24 @@
-package com.teenkung.devstoragedrawer.block;
+package com.Teenkung.devStorageDrawer.block;
 
-import com.teenkung.devstoragedrawer.config.DrawerTierDefinition;
-import com.teenkung.devstoragedrawer.display.DrawerVisualRenderer;
-import com.teenkung.devstoragedrawer.domain.DrawerDisplayLink;
-import com.teenkung.devstoragedrawer.domain.DrawerItemIdentity;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalKind;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalPhase;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalReconciliation;
-import com.teenkung.devstoragedrawer.domain.DrawerProxyJournal;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerStorageTransaction;
-import com.teenkung.devstoragedrawer.domain.DrawerTier;
-import com.teenkung.devstoragedrawer.domain.DrawerWithdrawalPlan;
-import com.teenkung.devstoragedrawer.domain.SingleItemDrawerStorage;
-import com.teenkung.devstoragedrawer.hopper.DrawerHopperBridge;
-import com.teenkung.devstoragedrawer.parcel.DrawerParcelService;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateCodec;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateReadResult;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateRepository;
-import com.teenkung.devstoragedrawer.redstone.DrawerComparatorService;
+import com.Teenkung.devStorageDrawer.config.DrawerTierDefinition;
+import com.Teenkung.devStorageDrawer.display.DrawerVisualRenderer;
+import com.Teenkung.devStorageDrawer.domain.DrawerDisplayLink;
+import com.Teenkung.devStorageDrawer.domain.DrawerItemIdentity;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalKind;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalPhase;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalReconciliation;
+import com.Teenkung.devStorageDrawer.domain.DrawerProxyJournal;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerStorageTransaction;
+import com.Teenkung.devStorageDrawer.domain.DrawerTier;
+import com.Teenkung.devStorageDrawer.domain.DrawerWithdrawalPlan;
+import com.Teenkung.devStorageDrawer.domain.SingleItemDrawerStorage;
+import com.Teenkung.devStorageDrawer.hopper.DrawerHopperBridge;
+import com.Teenkung.devStorageDrawer.parcel.DrawerParcelService;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateCodec;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateReadResult;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateRepository;
+import com.Teenkung.devStorageDrawer.redstone.DrawerComparatorService;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -512,6 +512,9 @@ public final class DevStorageDrawerAcceptance {
     ) {
         final Entity entity = barrel.getWorld().getEntity(entityId);
         require(expectedType.isInstance(entity), "Display role has the wrong entity type");
+        if (entity instanceof ArmorStand) {
+            require(!entity.isVisibleByDefault(), "Bedrock fallback display is visible to Java by default");
+        }
         final Location center = barrel.getLocation().add(0.5D, 0.5D, 0.5D);
         final double frontDistance;
         if (entity instanceof Display display) {
@@ -620,9 +623,17 @@ public final class DevStorageDrawerAcceptance {
         final Barrel nearFullDrawer = (Barrel) block(10, 0, 14).getState();
         final long nearFullTransit = count(((Hopper) block(10, 1, 14).getState()).getInventory(), Material.STONE)
                 + count(((Chest) block(10, 2, 14).getState()).getInventory(), Material.STONE);
+        final DrawerState nearFullState = ((DrawerStateReadResult.Valid) repository.read(nearFullDrawer)).state();
+        final DrawerBlockAccess.PhysicalStock nearFullStock = context.blocks().inspect(nearFullDrawer, nearFullState);
+        final long mirrorCapacity = 27L * stone.getMaxStackSize();
         require(drawerTotal(nearFullDrawer) == capacity - (guardedBatch - 1L)
                         && nearFullTransit == guardedBatch,
                 "Near-full drawer accepted a partial configured hopper batch");
+        require(mirrorCapacity - nearFullStock.count() == guardedBatch - 1L,
+                "Near-full mirror exposed more physical space than its logical remaining capacity: physical="
+                        + nearFullStock.count() + ", mirrorCapacity=" + mirrorCapacity);
+
+        verifyOverflowRecoveryPlan(stone);
 
         final Barrel exactBatchDrawer = (Barrel) block(13, 0, 14).getState();
         final long exactBatchTransit = count(((Hopper) block(13, 1, 14).getState()).getInventory(), Material.STONE)
@@ -630,6 +641,37 @@ public final class DevStorageDrawerAcceptance {
         require(drawerTotal(exactBatchDrawer) == capacity && exactBatchTransit == 0L,
                 "Drawer rejected a configured hopper batch that exactly fit its remaining capacity");
         plugin.getLogger().info("Acceptance: vanilla input/output, configured hopper batches, concurrent side hoppers, and hopper minecart passed");
+    }
+
+    private void verifyOverflowRecoveryPlan(final ItemStack template) {
+        final DrawerState wedged = DrawerState.restored(
+                DrawerState.CURRENT_SCHEMA_VERSION,
+                "8",
+                template,
+                524_281L,
+                1_605L,
+                524_288L,
+                null,
+                DrawerDisplayLink.none()
+        );
+        final DrawerStorageTransaction recovery = DrawerStorageTransaction.recoverMirrorOverflow(wedged, 1_728L)
+                .orElseThrow(() -> new IllegalStateException("Exact over-capacity NBT did not produce a recovery"));
+        require(recovery.acceptedAmount() == 116L, "Overflow recovery returned the wrong item count");
+        require(recovery.physicalAfter() == 1_612L, "Overflow recovery retained the wrong physical count");
+        require(recovery.stateBefore().totalForPhysical(recovery.physicalBefore()) == 524_404L,
+                "Overflow recovery lost the observed physical input");
+        require(recovery.stateAfter().totalForPhysical(recovery.physicalAfter()) == 524_288L,
+                "Overflow recovery did not normalize to the configured capacity");
+
+        final DrawerWithdrawalPlan plan = DrawerWithdrawalPlan.forOverflowRecovery(
+                recovery,
+                UUID.randomUUID(),
+                123L
+        );
+        require(plan.journal().kind() == DrawerJournalKind.OVERFLOW_RECOVERY,
+                "Overflow recovery used the wrong durable journal kind");
+        require(plan.committedState().capacitySnapshot() == 524_288L,
+                "Overflow recovery left its temporary expanded capacity committed");
     }
 
     private void verifyConservationColumn(

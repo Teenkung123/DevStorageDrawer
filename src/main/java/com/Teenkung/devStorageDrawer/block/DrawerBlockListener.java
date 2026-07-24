@@ -1,14 +1,14 @@
-package com.teenkung.devstoragedrawer.block;
+package com.Teenkung.devStorageDrawer.block;
 
-import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
-import com.teenkung.devstoragedrawer.config.DrawerTierDefinition;
-import com.teenkung.devstoragedrawer.domain.DrawerInvariantViolationException;
-import com.teenkung.devstoragedrawer.domain.DrawerItemIdentity;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalKind;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalReconciliation;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.hopper.DrawerHopperBridge;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateReadResult;
+import com.Teenkung.devStorageDrawer.api.DrawerChangeCause;
+import com.Teenkung.devStorageDrawer.config.DrawerTierDefinition;
+import com.Teenkung.devStorageDrawer.domain.DrawerInvariantViolationException;
+import com.Teenkung.devStorageDrawer.domain.DrawerItemIdentity;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalKind;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalReconciliation;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.hopper.DrawerHopperBridge;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateReadResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -92,7 +92,8 @@ public final class DrawerBlockListener implements Listener {
             return;
         }
         if (state.hasPendingProxyJournal()) {
-            if (state.proxyJournal().filter(journal -> journal.kind() == DrawerJournalKind.PLAYER_WITHDRAWAL).isPresent()) {
+            if (state.proxyJournal().filter(journal -> journal.kind() == DrawerJournalKind.PLAYER_WITHDRAWAL
+                    || journal.kind() == DrawerJournalKind.OVERFLOW_RECOVERY).isPresent()) {
                 allowFallbackBreak(event, barrel, "a player withdrawal is still being recovered");
                 return;
             }

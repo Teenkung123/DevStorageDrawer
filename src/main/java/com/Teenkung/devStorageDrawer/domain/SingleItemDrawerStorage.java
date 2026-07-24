@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -300,11 +300,15 @@ public final class SingleItemDrawerStorage implements DrawerStorageStrategy {
             throw new DrawerValidationException("Configured output proxy capacity overflows a signed long", exception);
         }
         final int nativeMaxStackSize = DrawerItemIdentity.nativeMaxStackSize(state.requireTemplate());
+        final long mirrorCapacity = DrawerCapacity.checkedAdd(
+                proxyCapacity,
+                nativeMaxStackSize,
+                "Physical mirror capacity"
+        );
         long physicalTarget = this.logicalComparatorProxy
                 ? DrawerComparatorLevel.physicalProxyTarget(total, state.capacitySnapshot(), nativeMaxStackSize)
                 : Math.min(total, proxyCapacity);
         if (state.usesReservedMirror() && this.logicalComparatorProxy) {
-            final long mirrorCapacity = proxyCapacity + nativeMaxStackSize;
             // Keep one real native stack in the barrel. This supports any valid hopper batch up to
             // the item's stack limit; a smaller drawer exposes only its real remainder so an
             // oversized request is naturally clamped instead of inventing stock.
@@ -317,7 +321,15 @@ public final class SingleItemDrawerStorage implements DrawerStorageStrategy {
                 && nativeMaxStackSize > 1 && total >= 27L) {
             physicalTarget = Math.max(physicalTarget, 27L);
         }
-        if (physicalTarget > proxyCapacity + nativeMaxStackSize) {
+        if (state.usesReservedMirror()) {
+            physicalTarget = DrawerCapacity.capacityProtectedMirrorTarget(
+                    total,
+                    state.capacitySnapshot(),
+                    mirrorCapacity,
+                    physicalTarget
+            );
+        }
+        if (physicalTarget > mirrorCapacity) {
             throw new DrawerValidationException("Logical comparator proxy target exceeds the barrel mirror capacity");
         }
         if (physicalTarget == physicalProxyCount) {

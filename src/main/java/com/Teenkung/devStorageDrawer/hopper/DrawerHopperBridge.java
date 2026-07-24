@@ -1,18 +1,18 @@
-package com.teenkung.devstoragedrawer.hopper;
+package com.Teenkung.devStorageDrawer.hopper;
 
-import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
-import com.teenkung.devstoragedrawer.block.DrawerBlockAccess;
-import com.teenkung.devstoragedrawer.block.DrawerRuntimeContext;
-import com.teenkung.devstoragedrawer.config.DrawerTierDefinition;
-import com.teenkung.devstoragedrawer.domain.DrawerInvariantViolationException;
-import com.teenkung.devstoragedrawer.domain.DrawerItemIdentity;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalKind;
-import com.teenkung.devstoragedrawer.domain.DrawerJournalReconciliation;
-import com.teenkung.devstoragedrawer.domain.DrawerRebalancePlan;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
-import com.teenkung.devstoragedrawer.domain.DrawerStorageTransaction;
-import com.teenkung.devstoragedrawer.persistence.DrawerStateReadResult;
-import com.teenkung.devstoragedrawer.receipt.DrawerWithdrawalCoordinator;
+import com.Teenkung.devStorageDrawer.api.DrawerChangeCause;
+import com.Teenkung.devStorageDrawer.block.DrawerBlockAccess;
+import com.Teenkung.devStorageDrawer.block.DrawerRuntimeContext;
+import com.Teenkung.devStorageDrawer.config.DrawerTierDefinition;
+import com.Teenkung.devStorageDrawer.domain.DrawerInvariantViolationException;
+import com.Teenkung.devStorageDrawer.domain.DrawerItemIdentity;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalKind;
+import com.Teenkung.devStorageDrawer.domain.DrawerJournalReconciliation;
+import com.Teenkung.devStorageDrawer.domain.DrawerRebalancePlan;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.domain.DrawerStorageTransaction;
+import com.Teenkung.devStorageDrawer.persistence.DrawerStateReadResult;
+import com.Teenkung.devStorageDrawer.receipt.DrawerWithdrawalCoordinator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +26,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.block.Hopper;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -140,6 +141,51 @@ public final class DrawerHopperBridge implements Listener {
         }
         if (sourceDrawer || destinationDrawer) {
             debug("accepted move and queued drawer reconciliation");
+        }
+    }
+
+    /**
+     * Starts an owner-bound durable withdrawal for matching physical input that already exceeded
+     * this drawer's capacity. Normal reconciliation remains strict and never deletes the excess.
+     */
+    public OverflowRecoveryResult recoverCapacityOverflow(final Player player, final Barrel barrel) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(barrel, "barrel");
+        if (!isActive()) {
+            return OverflowRecoveryResult.FAILED;
+        }
+        final Barrel current = this.context.blocks().barrel(barrel.getBlock()).orElse(null);
+        if (current == null || !this.context.repository().isDrawer(current)) {
+            return OverflowRecoveryResult.NOT_REQUIRED;
+        }
+        final DrawerStateReadResult read = this.context.repository().read(current);
+        if (!(read instanceof DrawerStateReadResult.Valid valid)) {
+            return OverflowRecoveryResult.NOT_REQUIRED;
+        }
+        final DrawerBlockAccess.PhysicalStock stock = this.context.blocks().inspect(current, valid.state());
+        if (!stock.matchesTemplate()) {
+            return OverflowRecoveryResult.NOT_REQUIRED;
+        }
+        try {
+            final Optional<DrawerStorageTransaction> recovery = DrawerStorageTransaction.recoverMirrorOverflow(
+                    valid.state(),
+                    stock.count()
+            );
+            if (recovery.isEmpty()) {
+                return OverflowRecoveryResult.NOT_REQUIRED;
+            }
+            if (!this.withdrawals.beginOverflowRecovery(player, current, recovery.get())) {
+                return OverflowRecoveryResult.FAILED;
+            }
+            final long overflow = recovery.get().acceptedAmount();
+            this.quarantinedInvalidStates.remove(DrawerKey.of(current.getLocation()));
+            this.context.logger().warning("Recovering " + overflow + " over-capacity item(s) from drawer at "
+                    + current.getLocation() + " through a durable withdrawal receipt for " + player.getName());
+            return OverflowRecoveryResult.STARTED;
+        } catch (final DrawerInvariantViolationException | IllegalArgumentException exception) {
+            this.context.logger().warning("Could not recover over-capacity drawer at " + current.getLocation()
+                    + ": " + exception.getMessage());
+            return OverflowRecoveryResult.FAILED;
         }
     }
 
@@ -391,7 +437,8 @@ public final class DrawerHopperBridge implements Listener {
 
         try {
             if (state.proxyJournal()
-                    .filter(journal -> journal.kind() == DrawerJournalKind.PLAYER_WITHDRAWAL)
+                    .filter(journal -> journal.kind() == DrawerJournalKind.PLAYER_WITHDRAWAL
+                            || journal.kind() == DrawerJournalKind.OVERFLOW_RECOVERY)
                     .isPresent()) {
                 this.withdrawals.recover(current, state, stock.count(), () -> this.queueRebalance(current));
                 debug("delegated reconciliation of a player withdrawal journal");
@@ -727,6 +774,12 @@ public final class DrawerHopperBridge implements Listener {
         return inventory.getType() + "@" + (location == null ? "unknown" : location)
                 + " holder=" + (barrel == null ? "none" : barrel.getClass().getSimpleName())
                 + " drawer=" + drawer;
+    }
+
+    public enum OverflowRecoveryResult {
+        NOT_REQUIRED,
+        STARTED,
+        FAILED
     }
 
     private record DrawerKey(UUID worldId, int x, int y, int z) {

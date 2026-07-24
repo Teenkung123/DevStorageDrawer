@@ -1,7 +1,7 @@
-package com.teenkung.devstoragedrawer.api.event;
+package com.Teenkung.devStorageDrawer.api.event;
 
-import com.teenkung.devstoragedrawer.api.DrawerChangeCause;
-import com.teenkung.devstoragedrawer.api.DrawerSnapshot;
+import com.Teenkung.devStorageDrawer.api.DrawerChangeCause;
+import com.Teenkung.devStorageDrawer.api.DrawerSnapshot;
 import java.util.Objects;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

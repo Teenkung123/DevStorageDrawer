@@ -1,7 +1,7 @@
-package com.teenkung.devstoragedrawer.command;
+package com.Teenkung.devStorageDrawer.command;
 
-import com.teenkung.devstoragedrawer.config.DrawerMessages;
-import com.teenkung.devstoragedrawer.config.DrawerSettings;
+import com.Teenkung.devStorageDrawer.config.DrawerMessages;
+import com.Teenkung.devStorageDrawer.config.DrawerSettings;
 import org.bukkit.entity.Player;
 
 /** Narrow runtime surface used by the administrative command. */

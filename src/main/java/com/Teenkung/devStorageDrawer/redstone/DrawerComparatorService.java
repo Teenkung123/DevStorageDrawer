@@ -1,8 +1,8 @@
-package com.teenkung.devstoragedrawer.redstone;
+package com.Teenkung.devStorageDrawer.redstone;
 
-import com.teenkung.devstoragedrawer.block.DrawerRuntimeContext;
-import com.teenkung.devstoragedrawer.domain.DrawerComparatorLevel;
-import com.teenkung.devstoragedrawer.domain.DrawerState;
+import com.Teenkung.devStorageDrawer.block.DrawerRuntimeContext;
+import com.Teenkung.devStorageDrawer.domain.DrawerComparatorLevel;
+import com.Teenkung.devStorageDrawer.domain.DrawerState;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;

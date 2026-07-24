@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.api;
+package com.Teenkung.devStorageDrawer.api;
 
 /** Direction of an external API transfer. */
 public enum DrawerTransferType {

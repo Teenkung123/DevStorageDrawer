@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 /**
  * Thrown when persisted or configuration-backed drawer data cannot safely describe a drawer.

@@ -1,6 +1,6 @@
-package com.teenkung.devstoragedrawer.parcel;
+package com.Teenkung.devStorageDrawer.parcel;
 
-import com.teenkung.devstoragedrawer.config.DrawerMessages;
+import com.Teenkung.devStorageDrawer.config.DrawerMessages;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;

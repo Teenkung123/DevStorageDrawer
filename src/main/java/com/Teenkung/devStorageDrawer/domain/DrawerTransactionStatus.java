@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 /** A non-exceptional reason that a requested transfer was not accepted. */
 public enum DrawerTransactionStatus {

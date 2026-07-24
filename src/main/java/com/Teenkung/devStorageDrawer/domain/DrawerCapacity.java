@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.domain;
+package com.Teenkung.devStorageDrawer.domain;
 
 import java.util.Objects;
 import org.bukkit.inventory.ItemStack;
@@ -61,12 +61,28 @@ public final class DrawerCapacity {
             final long observedMirrorCount,
             final long capacity
     ) {
+        final long total = totalAfterMirrorDeltaWithoutCapacityLimit(
+                storedTotal,
+                expectedMirrorCount,
+                observedMirrorCount
+        );
+        requireNonNegative(capacity, "drawer capacity");
+        if (total > capacity) {
+            throw new DrawerInvariantViolationException("Drawer mirror delta exceeds capacity");
+        }
+        return total;
+    }
+
+    static long totalAfterMirrorDeltaWithoutCapacityLimit(
+            final long storedTotal,
+            final long expectedMirrorCount,
+            final long observedMirrorCount
+    ) {
         requireNonNegative(storedTotal, "drawer stored total");
         requireNonNegative(expectedMirrorCount, "expected drawer mirror count");
         requireNonNegative(observedMirrorCount, "observed drawer mirror count");
-        requireNonNegative(capacity, "drawer capacity");
 
-        final long total = observedMirrorCount >= expectedMirrorCount
+        return observedMirrorCount >= expectedMirrorCount
                 ? checkedAdd(
                 storedTotal,
                 observedMirrorCount - expectedMirrorCount,
@@ -77,10 +93,35 @@ public final class DrawerCapacity {
                 expectedMirrorCount - observedMirrorCount,
                 "Drawer mirror output delta"
         );
+    }
+
+    /**
+     * Raises a preferred mirror target until its remaining physical inventory space is no greater
+     * than the drawer's remaining logical capacity. Matching eventless hopper input then fills at
+     * most the amount the drawer can really accept.
+     */
+    static long capacityProtectedMirrorTarget(
+            final long total,
+            final long capacity,
+            final long mirrorCapacity,
+            final long preferredTarget
+    ) {
+        requireNonNegative(total, "drawer total");
+        requireNonNegative(capacity, "drawer capacity");
+        requireNonNegative(mirrorCapacity, "physical mirror capacity");
+        requireNonNegative(preferredTarget, "preferred physical mirror target");
         if (total > capacity) {
-            throw new DrawerInvariantViolationException("Drawer mirror delta exceeds capacity");
+            throw new DrawerInvariantViolationException("Drawer total exceeds capacity");
         }
-        return total;
+        if (preferredTarget > total || preferredTarget > mirrorCapacity) {
+            throw new DrawerInvariantViolationException("Preferred physical mirror target is invalid");
+        }
+
+        final long availableCapacity = capacity - total;
+        final long minimumProtectedTarget = availableCapacity >= mirrorCapacity
+                ? 0L
+                : mirrorCapacity - availableCapacity;
+        return Math.max(preferredTarget, Math.min(total, minimumProtectedTarget));
     }
 
     public static void requireNonNegative(final long value, final String label) {

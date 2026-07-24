@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.config;
+package com.Teenkung.devStorageDrawer.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

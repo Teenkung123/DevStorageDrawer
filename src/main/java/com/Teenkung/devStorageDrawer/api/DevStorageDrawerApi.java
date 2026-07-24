@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.api;
+package com.Teenkung.devStorageDrawer.api;
 
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.inventory.ItemStack;

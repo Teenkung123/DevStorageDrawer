@@ -1,4 +1,4 @@
-package com.teenkung.devstoragedrawer.receipt;
+package com.Teenkung.devStorageDrawer.receipt;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
